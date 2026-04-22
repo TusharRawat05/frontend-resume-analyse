@@ -14,6 +14,16 @@ export const useInterview = () => {
     }
 
     const { loading, setLoading, report, setReport, reports, setReports } = context
+    const getErrorMessage = (error) => {
+        const responseMessage = error.response?.data?.message
+        if (responseMessage) {
+            return responseMessage
+        }
+        if (error.response?.status) {
+            return `Request failed with status ${error.response.status}.`
+        }
+        return error.message || "Unable to generate interview report."
+    }
 
     const generateReport = async ({ jobDescription, selfDescription, resumeFile }) => {
     setLoading(true)
@@ -25,7 +35,7 @@ export const useInterview = () => {
         console.log(error)
         return {
             report: null,
-            error: error.response?.data?.message || error.message || "Unable to generate interview report."
+            error: getErrorMessage(error)
         }
     } finally {
         setLoading(false)
