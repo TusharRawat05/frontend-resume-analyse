@@ -11,10 +11,15 @@ const Home = () => {
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
+    const visibleReports = Array.isArray(reports) ? reports.filter(Boolean) : []
 
     const handleGenerateReport = async () => {
         const resumeFile = resumeInputRef.current.files[ 0 ]
         const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+        if (!data?._id) {
+            alert("Unable to generate interview report. Please add a job description and either a resume or self description, then try again.")
+            return
+        }
         navigate(`/interview/${data._id}`)
     }
 
@@ -123,11 +128,11 @@ const Home = () => {
             </div>
 
             {/* Recent Reports List */}
-            {reports.length > 0 && (
+            {visibleReports.length > 0 && (
                 <section className='recent-reports'>
                     <h2>My Recent Interview Plans</h2>
                     <ul className='reports-list'>
-                        {reports.map(report => (
+                        {visibleReports.map(report => (
                             <li key={report._id} className='report-item' onClick={() => navigate(`/interview/${report._id}`)}>
                                 <h3>{report.title || 'Untitled Position'}</h3>
                                 <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>

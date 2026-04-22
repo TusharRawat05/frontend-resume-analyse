@@ -48,13 +48,13 @@ export const useInterview = () => {
     let response = null
     try {
         response = await getAllInterviewReports()
-        setReports(response.interviewReports)
+        setReports(response.interviewReports?.filter(Boolean) || [])
     } catch (error) {
         console.log(error)
     } finally {
         setLoading(false)
     }
-    return response?.interviewReports || null  // ← add this
+    return response?.interviewReports?.filter(Boolean) || []  // ← add this
 }
 
     const getResumePdf = async (interviewReportId) => {
