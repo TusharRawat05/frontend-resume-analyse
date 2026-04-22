@@ -23,10 +23,17 @@ export const useInterview = () => {
         setReport(response.interviewReport)
     } catch (error) {
         console.log(error)
+        return {
+            report: null,
+            error: error.response?.data?.message || error.message || "Unable to generate interview report."
+        }
     } finally {
         setLoading(false)
     }
-    return response?.interviewReport || null  // ← add this
+    return {
+        report: response?.interviewReport || null,
+        error: null
+    }
 }
 
     const getReportById = async (interviewId) => {

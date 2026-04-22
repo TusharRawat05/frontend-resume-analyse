@@ -8,6 +8,8 @@ const Home = () => {
     const { loading, generateReport,reports } = useInterview()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
+    const jobDescriptionRef = useRef()
+    const selfDescriptionRef = useRef()
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
@@ -15,12 +17,30 @@ const Home = () => {
 
     const handleGenerateReport = async () => {
         const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        if (!data?._id) {
-            alert("Unable to generate interview report. Please add a job description and either a resume or self description, then try again.")
+        const trimmedJobDescription = (jobDescriptionRef.current?.value || jobDescription).trim()
+        const trimmedSelfDescription = (selfDescriptionRef.current?.value || selfDescription).trim()
+
+        if (!trimmedJobDescription) {
+            alert("Please add the job description first.")
             return
         }
-        navigate(`/interview/${data._id}`)
+
+        if (!resumeFile && !trimmedSelfDescription) {
+            alert("Please also upload your resume or add a quick self-description.")
+            return
+        }
+
+        const { report, error } = await generateReport({
+            jobDescription: trimmedJobDescription,
+            selfDescription: trimmedSelfDescription,
+            resumeFile
+        })
+
+        if (!report?._id) {
+            alert(error || "Unable to generate interview report. Please try again.")
+            return
+        }
+        navigate(`/interview/${report._id}`)
     }
 
     if (loading) {
@@ -54,6 +74,7 @@ const Home = () => {
                             <span className='badge badge--required'>Required</span>
                         </div>
                         <textarea
+                            ref={jobDescriptionRef}
                             onChange={(e) => { setJobDescription(e.target.value) }}
                             className='panel__textarea'
                             placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
@@ -85,8 +106,8 @@ const Home = () => {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
                                 </span>
                                 <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
-                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                                <p className='dropzone__subtitle'>PDF (Max 3MB)</p>
+                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf' />
                             </label>
                         </div>
 
@@ -97,6 +118,7 @@ const Home = () => {
                         <div className='self-description'>
                             <label className='section-label' htmlFor='selfDescription'>Quick Self-Description</label>
                             <textarea
+                                ref={selfDescriptionRef}
                                 onChange={(e) => { setSelfDescription(e.target.value) }}
                                 id='selfDescription'
                                 name='selfDescription'
